@@ -1,3 +1,5 @@
+import sys
+
 from src.manager import Manager
 from src.models import Parameters
 
@@ -64,10 +66,25 @@ def display_tenants(manager):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) != 4:
+        print("Użycie: python main.py <apartment_key> <year> <month>")
+        sys.exit(1)
+
+    apartment_key = sys.argv[1]
+    year = int(sys.argv[2])
+    month = int(sys.argv[3])
+
     parameters = Parameters()
     manager = Manager(parameters)
+    settlement = manager.get_settlement(apartment_key, year, month)
 
-    display_apartments(manager)
-    display_tenants(manager)
-    
-    print(f"\n{'=' * 70}\n")
+    if settlement is None:
+        print(f"Nie znaleziono mieszkania: {apartment_key}")
+        sys.exit(1)
+
+    tenants = manager.create_tenants_settlements(settlement)
+
+    print(f"Rozliczenie: {apartment_key} ({month:02d}/{year})")
+    print(f"Koszty mieszkania: {settlement.total_due_pln:.2f} PLN")
+    for ts in tenants:
+        print(f"- {ts.tenant}: {ts.total_due_pln:.2f} PLN")
